@@ -1,0 +1,13 @@
+{
+  "RestrictionSets": [
+    {
+      "maximumAllowed": 1,
+      "restrictedItems": [
+        "heavy.plate.helmet",
+        "heavy.plate.jacket",
+        "heavy.plate.pants"
+      ],
+      "errorMessage": "Wearing more than 1 heavy item while mounting this is not allowed!"
+    }
+  ]
+}
