@@ -13,7 +13,6 @@ namespace Oxide.Plugins {
             public List<string> restrictedItems { get; set; }
             public int? maximumAllowed { get; set; }
             public string errorMessage { get; set; }
-
             public List<string> entityNames { get; set; }
         }
 
@@ -87,7 +86,6 @@ namespace Oxide.Plugins {
             string entityName = new string(mountedEntity._name.Where(c => char.IsLetter(c)).ToArray());
             List<RestrictionSet> restrictionSets = config.RestrictionSets;
             if (restrictionSets != null && player != null) {
-
                 List<RestrictionSet> matchedRestrictionSets = restrictionSets.Where(restrictionSet => restrictionSet.restrictedItems != null && (restrictionSet.entityNames == null || restrictionSet.entityNames.Contains(entityName)) && restrictionSet.restrictedItems.Where(itemName => items.Any(item => item.info.shortname == itemName)).ToList().Count > restrictionSet.maximumAllowed).ToList();
                 if (matchedRestrictionSets.Count > 0) {
                     matchedRestrictionSets.ForEach(restrictionSet => player.ChatMessage($"Animal Mount Restriction: {restrictionSet.errorMessage}"));
