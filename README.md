@@ -22,7 +22,9 @@ Default restriction is no more than 1 Heavy armor can be equipped at a time.
         "heavy.plate.jacket",
         "heavy.plate.pants"
       ],
-      "errorMessage": "Wearing more than 1 heavy item while mounting this is not allowed!"
+      "errorMessage": "Wearing more than 1 heavy item while mounting this is not allowed!",
+      // leave this blank to apply to ALL mountables
+      "entityNames": ["testridablehorse", "minicopterentity", "rowboat", "scraptransporthelicopter"]
     }
   ]
 }
