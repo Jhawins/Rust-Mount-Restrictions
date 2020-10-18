@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Oxide.Plugins {
     [Info("Animal Mounting Restrictions", "Jhawins", "0.1.0")]
     [Description("A plugin that restricts mounting of Rideable Animals based on configured criteria")]
-    class AnimalMountRestrictions : CovalencePlugin {
+    class MountRestrictions : CovalencePlugin {
         #region Configuration
 
         private struct RestrictionSet {
