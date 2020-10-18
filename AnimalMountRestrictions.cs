@@ -82,15 +82,20 @@ namespace Oxide.Plugins {
 
         #region Methods
 
-        bool CheckAnyRestrictionsMatched(List<Item> items, BasePlayer player, BaseVehicle mountedEntity) {
-            string entityName = new string(mountedEntity._name.Where(c => char.IsLetter(c)).ToArray());
-            List<RestrictionSet> restrictionSets = config.RestrictionSets;
-            if (restrictionSets != null && player != null) {
-                List<RestrictionSet> matchedRestrictionSets = restrictionSets.Where(restrictionSet => restrictionSet.restrictedItems != null && (restrictionSet.entityNames == null || restrictionSet.entityNames.Contains(entityName)) && restrictionSet.restrictedItems.Where(itemName => items.Any(item => item.info.shortname == itemName)).ToList().Count > restrictionSet.maximumAllowed).ToList();
-                if (matchedRestrictionSets.Count > 0) {
-                    matchedRestrictionSets.ForEach(restrictionSet => player.ChatMessage($"Animal Mount Restriction: {restrictionSet.errorMessage}"));
-                    return true;
+        bool CheckAnyRestrictionsMatched(List<Item> items, BasePlayer player, BaseMountable mountedEntity) {
+            try {
+                if (mountedEntity._name != null) {
+                    string entityName = new string(mountedEntity._name.Where(c => char.IsLetter(c)).ToArray());
+                    List<RestrictionSet> restrictionSets = config.RestrictionSets;
+                    List<RestrictionSet> matchedRestrictionSets = restrictionSets.Where(restrictionSet => restrictionSet.restrictedItems != null && (restrictionSet.entityNames == null || restrictionSet.entityNames.Contains(entityName)) && restrictionSet.restrictedItems.Where(itemName => items.Any(item => item.info.shortname == itemName)).ToList().Count > restrictionSet.maximumAllowed).ToList();
+                    if (matchedRestrictionSets.Count > 0) {
+                        matchedRestrictionSets.ForEach(restrictionSet => player.ChatMessage($"Mount Restriction: {restrictionSet.errorMessage}"));
+                        return true;
+                    }
                 }
+            } catch {
+                // someone probably sent some weird malformed data as config... Whatever
+                return false;
             }
 
             return false;
