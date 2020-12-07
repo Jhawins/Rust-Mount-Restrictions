@@ -2,7 +2,7 @@
 
 ## Description
 
-This plugin restricts mounting of Rideable Eneities (future support for those rideable Bears) when certain wearable items are worn.
+This plugin restricts mounting of Rideable Entities (future support for those rideable Bears) when certain wearable items are worn.
 Also restricts equipping items once already mounted.
 
 ## Use
