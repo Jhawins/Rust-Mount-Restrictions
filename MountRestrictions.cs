@@ -1,25 +1,37 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
-using UnityEngine;
 
 namespace Oxide.Plugins {
-    [Info("Animal Mounting Restrictions", "Jhawins", "0.1.0")]
-    [Description("A plugin that restricts mounting of Mountables based on configured criteria")]
+    [Info("Mount Restrictions", "Jhawins", "1.0.0")]
+    [Description("Restricts equipment when mounting entities based on configuration")]
     class MountRestrictions : CovalencePlugin {
+
+        #region Localization
+
+        protected override void LoadDefaultMessages() {
+            lang.RegisterMessages(new Dictionary<string, string>() {
+                ["HeavyArmor"] = "Wearing more than 1 heavy item while mounting this is not allowed!"
+            }, this);
+        }
+
+        private string GetMessage(string key) => lang.GetMessage(key, this);
+
+        #endregion
+
         #region Configuration
 
         private struct RestrictionSet {
             public List<string> restrictedItems { get; set; }
             public int? maximumAllowed { get; set; }
-            public string errorMessage { get; set; }
+            public string messageKey { get; set; }
             public List<string> entityNames { get; set; }
         }
 
         private Configuration config;
 
         private class Configuration {
-            [JsonProperty("RestrictionSets")]
+            [JsonProperty(PropertyName = "RestrictionSets")]
             public List<RestrictionSet> RestrictionSets { get; set; }
         }
 
@@ -30,7 +42,7 @@ namespace Oxide.Plugins {
                         new RestrictionSet {
                             restrictedItems = new List<string> () { "heavy.plate.helmet", "heavy.plate.jacket", "heavy.plate.pants" },
                             maximumAllowed = 1,
-                            errorMessage = "Wearing more than 1 heavy item while mounting this is not allowed!",
+                            messageKey = "HeavyArmor",
                             entityNames = new List<string> { "testridablehorse", "minicopterentity", "scraptransporthelicopter" }
                         }
                     }
@@ -42,13 +54,19 @@ namespace Oxide.Plugins {
             Config.WriteObject(GetDefaultConfig(), true);
         }
 
-        #endregion
-
-        #region Init
-
-        private void Init() {
-            config = Config.ReadObject<Configuration>();
-            Puts("Initialized Mount Restrictions");
+        protected override void LoadConfig() {
+            base.LoadConfig();
+            try {
+                config = Config.ReadObject<Configuration>();
+                if (config == null) {
+                    throw new JsonException();
+                }
+                Puts("Non-default configuration found. Saving");
+                SaveConfig();
+            } catch {
+                Puts($"Configuration file is syntactically invalid! Default configuration will be used");
+                LoadDefaultConfig();
+            }
         }
 
         #endregion
@@ -56,9 +74,9 @@ namespace Oxide.Plugins {
         #region Hooks
 
         bool? CanMountEntity(BasePlayer player, BaseMountable entity) {
-            BaseVehicle vehicleEntity = entity.GetComponentInParent<BaseVehicle>() ?? null;
             if (entity != null && player != null) {
-                if (CheckAnyRestrictionsMatched(player.inventory.containerWear.itemList, player, vehicleEntity)) {
+                BaseVehicle vehicleEntity = entity.VehicleParent();
+                if (vehicleEntity != null && CheckAnyRestrictionsMatched(player.inventory.containerWear.itemList, player, vehicleEntity)) {
                     return false;
                 }
             }
@@ -66,11 +84,11 @@ namespace Oxide.Plugins {
             return null;
         }
 
-        bool? CanWearItem(PlayerInventory inventory, Item item, int targetSlot) {
+        bool? CanWearItem(PlayerInventory inventory, Item item) {
             BasePlayer player = inventory.containerWear.playerOwner;
             BaseVehicle mountedEntity = player.GetMountedVehicle();
             if (mountedEntity != null) {
-                List<Item> newWearables = player.inventory.containerWear.itemList.ToList();
+                List<Item> newWearables = new List<Item>(player.inventory.containerWear.itemList);
                 newWearables.Add(item);
                 return !CheckAnyRestrictionsMatched(newWearables, player, mountedEntity);
             }
@@ -84,17 +102,19 @@ namespace Oxide.Plugins {
 
         bool CheckAnyRestrictionsMatched(List<Item> items, BasePlayer player, BaseMountable mountedEntity) {
             try {
-                if (mountedEntity._name != null) {
-                    string entityName = new string(mountedEntity._name.Where(c => char.IsLetter(c)).ToArray());
+                if (mountedEntity.ShortPrefabName != null) {
+                    string entityName = new Regex(@"\W").Replace(mountedEntity.ShortPrefabName, "");
                     List<RestrictionSet> restrictionSets = config.RestrictionSets;
-                    List<RestrictionSet> matchedRestrictionSets = restrictionSets.Where(restrictionSet => restrictionSet.restrictedItems != null && (restrictionSet.entityNames == null || restrictionSet.entityNames.Contains(entityName)) && restrictionSet.restrictedItems.Where(itemName => items.Any(item => item.info.shortname == itemName)).ToList().Count > restrictionSet.maximumAllowed).ToList();
+                    List<RestrictionSet> matchedRestrictionSets = restrictionSets.FindAll(restrictionSet => restrictionSet.restrictedItems != null
+                        && (restrictionSet.entityNames == null || restrictionSet.entityNames.Contains(entityName))
+                        && restrictionSet.restrictedItems.FindAll(itemName => items.Exists(item => item.info.shortname == itemName)).Count > restrictionSet.maximumAllowed);
                     if (matchedRestrictionSets.Count > 0) {
-                        matchedRestrictionSets.ForEach(restrictionSet => player.ChatMessage($"Mount Restriction: {restrictionSet.errorMessage}"));
+                        matchedRestrictionSets.ForEach(restrictionSet => player.ChatMessage($"Mount Restriction: {GetMessage(restrictionSet.messageKey)}"));
                         return true;
                     }
                 }
             } catch {
-                // someone probably sent some weird malformed data as config... Whatever
+                Puts($"Mount Restriction: Error - one or more restriction configurations may be invalid");
                 return false;
             }
 
