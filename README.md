@@ -16,17 +16,16 @@ Default restriction is no more than 1 Heavy armor can be equipped at a time.
 {
   "RestrictionSets": [
     {
-      "entityNames": [
-        "testridablehorse",
-        "minicopterentity",
-        "scraptransporthelicopter"
-      ],
-      "maximumAllowed": 1,
-      "messageKey": "HeavyArmor",
       "restrictedItems": [
         "heavy.plate.helmet",
         "heavy.plate.jacket",
         "heavy.plate.pants"
+      ],
+      "maximumAllowed": 1,
+      "entityNames": [
+        "testridablehorse",
+        "minicopterentity",
+        "scraptransporthelicopter"
       ]
     }
   ]
