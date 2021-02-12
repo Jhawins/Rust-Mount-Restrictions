@@ -1,33 +1,45 @@
-# Rust-Animal-Mount-Restrictions
+This plugin restricts mounting entities based on configurable "restriction sets".
 
-## Description
+Example: Restrict mounting horses when more than 1 heavy armor item is equipped.
 
-This plugin restricts mounting of Rideable Entities (future support for those rideable Bears) when certain wearable items are worn.
-Also restricts equipping items once already mounted.
+## Limitations
+**This plugin currently only restricts clothing/equipment. You will not be able to restrict weapon/hotbar items.**
 
-## Use
-Oxide plugin, load like any other
 
 ## Configuration
-Supports multiple sets of restrictions.
 
-Default restriction is no more than 1 Heavy armor can be equipped at a time.
+### Default Configuration
+
 ```json
 {
   "RestrictionSets": [
     {
-      "restrictedItems": [
+      "restrictedItems": [ // a list of _wearable_ items
         "heavy.plate.helmet",
         "heavy.plate.jacket",
         "heavy.plate.pants"
       ],
       "maximumAllowed": 1,
-      "entityNames": [
+      "langKey": "HeavyArmor", // YOU must define a language entry for each langKey
+      "entityNames": [ // a list of shortnames
         "testridablehorse",
         "minicopterentity",
         "scraptransporthelicopter"
       ]
     }
   ]
+}
+```
+
+## Localization
+
+You MUST define a corresponding Lang entry for each rule created. The key for each entry should exactly match your `langKey` property from the restrictionSet. Messages may be re-used for similar rules. 
+
+### Default Localization
+
+ ```json
+{
+  "Prefix": "Mount Restriction: ",
+  "HeavyArmor": "Wearing more than 1 heavy item while mounting this is not allowed!"
 }
 ```

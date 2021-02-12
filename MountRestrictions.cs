@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
@@ -12,8 +12,7 @@ namespace Oxide.Plugins {
         protected override void LoadDefaultMessages() {
             lang.RegisterMessages(new Dictionary<string, string>() {
                 ["Prefix"] = "Mount Restriction: ",
-                ["CannotMount"] = "You cannot mount this while wearing that combination of gear!",
-                ["CannotEquip"] = "You cannot equip that combination of gear while mounted to this!",
+                ["HeavyArmor"] = "Wearing more than 1 heavy item while mounting this is not allowed!",
             }, this, "en");
         }
 
@@ -26,6 +25,7 @@ namespace Oxide.Plugins {
         private struct RestrictionSet {
             public List<string> restrictedItems { get; set; }
             public int? maximumAllowed { get; set; }
+            public string langKey { get; set; }
             public List<string> entityNames { get; set; }
         }
 
@@ -43,7 +43,8 @@ namespace Oxide.Plugins {
                         new RestrictionSet {
                             restrictedItems = new List<string> () { "heavy.plate.helmet", "heavy.plate.jacket", "heavy.plate.pants" },
                             maximumAllowed = 1,
-                            entityNames = new List<string> { "testridablehorse", "minicopterentity", "scraptransporthelicopter" }
+                            langKey = "HeavyArmor",
+                            entityNames = new List<string> { "testridablehorse", "minicopterentity", "scraptransporthelicopter", "rowboat" }
                         }
                     }
                 }
@@ -61,10 +62,11 @@ namespace Oxide.Plugins {
                 if (config == null) {
                     throw new JsonException();
                 }
+                SaveConfig();
                 Config.WriteObject(config);
-            } catch {
+            } catch (Exception e) {
                 // Likely to be a pretty insane exception. It is probably just invalid JSON
-                Puts("Configuration is syntactically invalid! Validate your configuration. Loading defaults {0}");
+                Puts("Configuration is syntactically invalid! Validate your configuration. Loading defaults {0}", e.ToString());
                 LoadDefaultConfig();
                 return;
             }
@@ -114,8 +116,7 @@ namespace Oxide.Plugins {
                         && (restrictionSet.entityNames == null || restrictionSet.entityNames.Contains(entityName))
                         && restrictionSet.restrictedItems.FindAll(itemName => items.Exists(item => item.info.shortname == itemName)).Count > restrictionSet.maximumAllowed);
                     if (matchedRestrictionSets.Count > 0) {
-                        string message = GetMessage(alreadyMounted ? "CannotEquip" : "CannotMount", player.UserIDString);
-                        matchedRestrictionSets.ForEach(restrictionSet => player.ChatMessage(message));
+                        matchedRestrictionSets.ForEach(restrictionSet => player.ChatMessage(GetMessage(restrictionSet.langKey, player.UserIDString)));
                         return true;
                     }
                 }
