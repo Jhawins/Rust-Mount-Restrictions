@@ -14,14 +14,14 @@ Example: Restrict mounting horses when more than 1 heavy armor item is equipped.
 {
   "RestrictionSets": [
     {
-      "restrictedItems": [ // a list of _wearable_ items
+      "restrictedItems": [
         "heavy.plate.helmet",
         "heavy.plate.jacket",
         "heavy.plate.pants"
       ],
       "maximumAllowed": 1,
-      "langKey": "HeavyArmor", // YOU must define a language entry for each langKey
-      "entityNames": [ // a list of shortnames
+      "langKey": "HeavyArmor",
+      "entityNames": [
         "testridablehorse",
         "minicopterentity",
         "scraptransporthelicopter"
