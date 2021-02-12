@@ -1,3 +1,4 @@
+## Overview
 This plugin restricts mounting entities based on configurable "restriction sets".
 
 Example: Restrict mounting horses when more than 1 heavy armor item is equipped.
